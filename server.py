@@ -38,12 +38,49 @@ def user_list():
 def register_form():
     """Shows a registration form for user email address and password."""
 
-    return render_template("register_form.html")
+    return render_template("registration_form.html")
 
 
 @app.route("/register", methods=["POST"])
 def register_process():
-    """Registers new user, checks for existing user"""    
+    """Registers new user, checks for existing user"""
+    # Check for existing user
+    email = request.form.get("email")
+    password = request.form.get("password")
+
+    if User.query.filter(User.email == email).first():
+        return redirect("/login")
+
+    else:
+        user = User(email=email, password=password)
+        db.session.add(user)
+        db.session.commit()
+
+    return redirect("/")
+
+
+@app.route("/login", methods=["GET"])
+def login_form():
+    """Allows the user to enter login info."""
+
+    return render_template("login.html")
+
+
+@app.route("/login", methods=["POST"])
+def log_user_in():
+    """Logs in the user if details match."""
+    email = request.form.get("email")
+    password = request.form.get("password")
+    # Check db for email and pw
+    if User.query.filter(User.email == email,
+                         User.password == password).first():
+        session['user'] = db.session.query(User.user_id).first()
+        flash('Logged in')
+
+    else:
+        flash('Incorrect email/password')
+
+    return redirect("/")
 
 
 if __name__ == "__main__":
