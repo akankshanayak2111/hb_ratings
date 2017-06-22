@@ -111,6 +111,24 @@ def log_user_out():
     return redirect("/")
 
 
+@app.route("/movies")
+def movie_list():
+    """Shows the list of movies."""
+    movies = Movie.query.order_by(Movie.title).all()
+    return render_template("movie_list.html", movies=movies)
+
+
+@app.route("/movie/<movie_id>", methods=["GET"])
+def movie_details(movie_id):
+    """Shows a movie's details."""
+
+    movie = Movie.query.get(movie_id)
+    movie_ratings = movie.ratings
+
+    return render_template("movie_details.html",
+                           movie=movie,
+                           movie_ratings=movie_ratings)
+
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension
