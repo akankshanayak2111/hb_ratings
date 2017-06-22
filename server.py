@@ -118,16 +118,36 @@ def movie_list():
     return render_template("movie_list.html", movies=movies)
 
 
-@app.route("/movie/<movie_id>", methods=["GET"])
+@app.route("/movies/<movie_id>", methods=["GET"])
 def movie_details(movie_id):
     """Shows a movie's details."""
 
     movie = Movie.query.get(movie_id)
     movie_ratings = movie.ratings
+    user_ratings = []
+    users = []
+
+    for rating in movie_ratings:
+        user_ratings.append((rating.user_id, rating.score))
+        users.append(rating.user_id)
 
     return render_template("movie_details.html",
                            movie=movie,
-                           movie_ratings=movie_ratings)
+                           user_ratings=user_ratings,
+                           users=users)
+
+
+@app.route("/movies/<movie_id>", methods=["POST"])
+def rate_movie():
+    """Allows user to add or update rating for a movie."""
+
+    movie_score = request.form.get("score")
+
+    #if user_id not in ratings table, add a row for user_id and bind score entered
+
+
+    #if user_id exists, update score column in ratings table
+    # if db.session.query(Rating.user_id)
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
