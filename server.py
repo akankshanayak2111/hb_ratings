@@ -34,6 +34,21 @@ def user_list():
     return render_template("user_list.html", users=users)
 
 
+@app.route("/users/<user_id>", methods=["GET"])
+def user_details(user_id):
+    """Shows a user's details."""
+
+    user = User.query.get(user_id)
+    user_ratings = user.ratings
+    user_movies = []
+    for rating in user_ratings:
+        user_movies.append((rating.movie.title, rating.score))
+
+    return render_template("user_details.html",
+                           user=user,
+                           user_movies=user_movies)
+
+
 @app.route("/register", methods=["GET"])
 def register_form():
     """Shows a registration form for user email address and password."""
@@ -49,14 +64,15 @@ def register_process():
     password = request.form.get("password")
 
     if User.query.filter(User.email == email).first():
-        return redirect("/login")
+        flash('Email already exists, please login.')
 
     else:
         user = User(email=email, password=password)
         db.session.add(user)
         db.session.commit()
+        flash('Successfully registered new user, please login.')
 
-    return redirect("/")
+    return redirect("/login")
 
 
 @app.route("/login", methods=["GET"])
@@ -72,13 +88,25 @@ def log_user_in():
     email = request.form.get("email")
     password = request.form.get("password")
     # Check db for email and pw
-    if User.query.filter(User.email == email,
-                         User.password == password).first():
-        session['user'] = db.session.query(User.user_id).first()
+
+    user = User.query.filter(User.email == email).first()
+
+    if user and user.password == password:
+        session['user'] = user.user_id
         flash('Logged in')
+        return redirect("/users/{}".format(user.user_id))
 
     else:
         flash('Incorrect email/password')
+        return redirect("/login")
+
+
+@app.route("/logout")
+def log_user_out():
+    """Logs out the user."""
+    # session.clear()
+    session.pop('user')
+    flash('Logged out')
 
     return redirect("/")
 
