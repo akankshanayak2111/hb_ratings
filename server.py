@@ -138,16 +138,28 @@ def movie_details(movie_id):
 
 
 @app.route("/movies/<movie_id>", methods=["POST"])
-def rate_movie():
+def rate_movie(movie_id):
     """Allows user to add or update rating for a movie."""
 
     movie_score = request.form.get("score")
+    current_movie = movie_id
+    current_user = session['user']
 
-    #if user_id not in ratings table, add a row for user_id and bind score entered
-
+    rating_exist = db.session.query(Rating).filter(Rating.user_id==current_user,
+                                                         Rating.movie_id==current_movie).first()
 
     #if user_id exists, update score column in ratings table
-    # if db.session.query(Rating.user_id)
+    if rating_exist:
+        rating_exist.score = movie_score
+        db.session.commit()
+    else:
+        new_rating = Rating(movie_id=current_movie, user_id=current_user, score=movie_score)
+        db.session.add(new_rating)
+        db.session.commit()
+
+    return redirect("/movies/{}".format(current_movie))
+
+
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
